@@ -1,47 +1,42 @@
+const neatcsv = require('neat-csv');
+
 describe('About Page', () => {
-    it('Test 1', () => {
-  
-      //To View in 1280*786
-      cy.viewport(1280, 720)
-  
-      //Object to load website
-      cy.URL()
+  let sar; // Declare a variable to store the data retrieved from the CSV file
 
-      // Go to Page
-      cy.xpath('(//a[@href="https://leeddev.io/blogs/"])[1]').click()
+  before(() => {
+    cy.fixture('testdata.csv')
+      .then(neatcsv) //Convert CSV file into an Object
+      .then((data) => {
+        sar = data; // Store the data in the 'sar' variable
+      });
+  });
 
-      //Assertion
-      cy.xpath('//h2[text()="Blog"]').should('exist')
+  it('Test 1', () => {
+    cy.viewport(1280, 720);
 
+    cy.visit('https://leeddev.io/');
 
-      //Search Article
-      cy.xpath('//input[@type="search"]').clear().type('Cyber Security')
-      cy.xpath('//input[@type="search"]').type('{enter}')
+    cy.xpath('(//a[text()="Blogs"])[1]').click();
 
-      cy.wait(5000)
+    cy.xpath('//h2[text()="Blog"]').should('exist');
 
-      //Search Assertion
-      //cy.get('.elementor-element-d5564f9 > .elementor-widget-container > .elementor-heading-title').should('exist')
-      cy.get('.elementor-element-d5564f9 > .elementor-widget-container > .elementor-heading-title')
+    // You can now access the 'sar' variable containing the CSV data in the test case
+    cy.get('input[type="search"]').clear().type(sar[0]['Search']);
+    cy.get('input[type="search"]').type('{enter}');
+
+    cy.wait(5000); // Wait for search results to load
+
+    cy.get('.elementor-element-d5564f9 > .elementor-widget-container > .elementor-heading-title')
       .should('exist')
-      .contains('Search Results for: Cyber Security')
-    
+      .contains(`Search Results for: ${sar[0]['Search']}`);
+  });
 
-    })
-
-    //For uncaught exception 
-
+  //For uncaught exception 
     Cypress.on('uncaught:exception', (err, runnable) => {
-      // Handle the uncaught exception here
-      console.error('Uncaught exception:', err);
-      // Return false to prevent Cypress from failing the test
-      return false;
-    })
-})
+    // Handle the uncaught exception here
+    console.error('Uncaught exception:', err);
+    // Return false to prevent Cypress from failing the test
+    return false;
+  });
 
-
-
-
-
-
-
+});
